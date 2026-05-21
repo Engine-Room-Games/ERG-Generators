@@ -1,0 +1,18 @@
+partial class %%ClassName%% : %%InterfaceName%%
+{
+    private void Awake()
+    {
+        var existing = %%InterfaceName%%.Instance as global::UnityEngine.Object;
+        if (existing != null && existing != this)
+        {
+            global::UnityEngine.Object.Destroy(gameObject);
+            return;
+        }
+
+        %%DontDestroyLine%%
+        %%InterfaceName%%.Instance = this;
+        AwakeInternal();
+    }
+
+    partial void AwakeInternal();
+}

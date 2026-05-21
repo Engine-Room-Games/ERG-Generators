@@ -1,0 +1,16 @@
+/// <summary>
+/// Marks a MonoBehaviour as a singleton. The source generator emits a matching
+/// I&lt;ClassName&gt; interface (exposing members tagged with
+/// <see cref="SingletonMemberAttribute"/>) and a partial Awake implementation that
+/// publishes the instance and optionally keeps the host GameObject across scene loads.
+/// </summary>
+[global::System.AttributeUsage(global::System.AttributeTargets.Class)]
+public sealed class SingletonAttribute : global::System.Attribute
+{
+    public bool DestroyOnLoad { get; }
+
+    public SingletonAttribute(bool destroyOnLoad = false)
+    {
+        DestroyOnLoad = destroyOnLoad;
+    }
+}
