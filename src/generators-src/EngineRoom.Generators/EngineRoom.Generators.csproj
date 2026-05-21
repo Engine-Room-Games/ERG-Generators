@@ -5,6 +5,10 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <IsRoslynComponent>true</IsRoslynComponent>
+    <!-- RS2008 demands AnalyzerReleases.{Shipped,Unshipped}.md tracking files.
+         That's only meaningful for analyzer packages shipped via NuGet; this
+         dll is dropped directly into Unity, so the tracking is dead weight. -->
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +16,15 @@
          Unity 6 bundles Roslyn at this API level, and newer packages
          compile against APIs the in-Editor compiler doesn't have. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Templates ship as embedded text resources inside the dll
+         (per docs/Directives.md) and are loaded by Helpers/TemplateLoader.
+         WithCulture=false is required: without it MSBuild's resource naming
+         task parses the ".cs" in ".cs.txt" as a Czech culture code and bundles
+         the templates into a satellite assembly instead of the main dll. -->
+    <EmbeddedResource Include="Templates/**/*.cs.txt" WithCulture="false" Type="Non-Resx" />
   </ItemGroup>
 
 </Project>
