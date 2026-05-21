@@ -1,0 +1,10 @@
+{
+  "name": "games.engine-room.generators",
+  "displayName": "Engine Room Generators",
+  "version": "0.0.1",
+  "unity": "6000.0",
+  "description": "Roslyn source generators for Unity projects.",
+  "author": {
+    "name": "Engine Room Games"
+  }
+}

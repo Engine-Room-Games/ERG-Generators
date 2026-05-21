@@ -27,4 +27,16 @@
     <EmbeddedResource Include="Templates/**/*.cs.txt" WithCulture="false" Type="Non-Resx" />
   </ItemGroup>
 
+  <!-- Release builds drop the generator dll into the Unity package so the
+       Editor picks up the new build on its next asset refresh. The companion
+       .dll.meta (no platforms enabled, RoslynAnalyzer label) is checked in
+       at the destination, so Unity uses it instead of generating a default. -->
+  <Target Name="CopyToUnityPackage" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <UnityPackagePath>$(MSBuildThisFileDirectory)..\..\generators-unity\Packages\games.engine-room.generators\Plugins</UnityPackagePath>
+    </PropertyGroup>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(UnityPackagePath)" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Copied $(TargetFileName) to $(UnityPackagePath)" />
+  </Target>
+
 </Project>

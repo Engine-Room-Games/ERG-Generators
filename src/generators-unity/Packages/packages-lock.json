@@ -191,6 +191,12 @@
       },
       "url": "https://packages.unity.com"
     },
+    "games.engine-room.generators": {
+      "version": "file:games.engine-room.generators",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,
