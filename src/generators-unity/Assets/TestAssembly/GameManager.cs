@@ -14,7 +14,6 @@ namespace TestAssembly
         partial void OnAwake()
         {
             ISoundManager.Instance.PlaySound(); 
-            ISingleton<ISoundManager>.Instance.PlaySound();
         }
     }
 }
