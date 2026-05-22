@@ -11,7 +11,7 @@ namespace TestAssembly
         [SingletonIgnore]
         public int IgnoredInt { get; set; }
         
-        partial void OnAwake()
+        private void Start()
         {
             ISoundManager.Instance.PlaySound(); 
         }

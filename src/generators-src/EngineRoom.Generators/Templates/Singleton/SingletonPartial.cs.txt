@@ -1,5 +1,11 @@
 partial class %%ClassName%%%%BaseList%%
 {
+    public static %%InterfaceName%% Create()
+    {
+        var obj = new global::UnityEngine.GameObject();
+        return obj.AddComponent<%%ClassName%%>();
+    }
+    
     private void Awake()
     {
         var existing = %%InterfaceName%%.Instance as global::UnityEngine.Object;
