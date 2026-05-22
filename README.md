@@ -17,7 +17,7 @@ A Unity package of Roslyn source generators that take care of the boilerplate ar
 Available on [OpenUPM](https://openupm.com/):
 
 ```
-openupm add com.engineroom.generators
+openupm add games.engine-room.generators
 ```
 
 ## Singletons
