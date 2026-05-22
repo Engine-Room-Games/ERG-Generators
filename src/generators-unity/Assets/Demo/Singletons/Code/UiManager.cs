@@ -5,7 +5,7 @@ using UnityEngine;
 namespace EngineRoom.Demo.Singletons
 {
     [Singleton]
-    public partial class UIManager : MonoBehaviour
+    public partial class UiManager : MonoBehaviour
     {
         [SerializeField] private TMP_Text _counterText;
 

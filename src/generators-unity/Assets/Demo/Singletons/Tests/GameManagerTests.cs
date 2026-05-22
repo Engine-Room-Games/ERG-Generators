@@ -56,14 +56,14 @@ namespace EngineRoom.Demo.Singletons.Tests
             }
         }
 
-        private class MockUIManager : IUIManager
+        private class MockUIManager : IUiManager
         {
             public int LastCount { get; private set; } = -1;
 
             public static MockUIManager Install()
             {
                 var mock = new MockUIManager();
-                IUIManager.Instance = mock;
+                IUiManager.Instance = mock;
                 return mock;
             }
 

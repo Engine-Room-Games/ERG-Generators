@@ -11,7 +11,7 @@ namespace EngineRoom.Demo.Singletons
         public int Count => _count;
 
         [Dependency] private ISoundManager _soundManager;
-        [Dependency] private IUIManager _uiManager;
+        [Dependency] private IUiManager _uiManager;
         
         private int _count;
 
