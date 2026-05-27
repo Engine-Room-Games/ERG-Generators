@@ -1,4 +1,4 @@
-# EngineRoom Generators
+# MGenerators
 
 A Unity package of Roslyn source generators that take care of the boilerplate around common gameplay patterns. Every generator ships with a companion analyzer that catches common misuse at edit time, so the pitfalls of each pattern surface as compiler diagnostics instead of runtime surprises.
 
