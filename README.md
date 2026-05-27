@@ -58,8 +58,7 @@ Open **Window → Package Manager**, click the **+** button, choose **Install pa
 https://github.com/Engine-Room-Games/MGenerators.git?path=src/generators-unity/Packages/games.engine-room.generators
 ```
 
-> [!TIP]
-> Pin a version by appending `#v<version>` to the URL. Without a version, Unity locks to whatever the default branch points at the time of install and never updates on its own — pinning makes that choice explicit.
+> **Tip** — Pin a version by appending `#v<version>` to the URL. Without a version, Unity locks to whatever the default branch points at the time of install and never updates on its own; pinning makes that choice explicit.
 
 ```
 # pin to a release
@@ -220,8 +219,7 @@ public partial class DataStoreManager : MonoBehaviour, IDataStoreManager
 
 When the generator synthesises the interface, it has to decide which members of your class show up on it. By default that's every public method and property. `[SingletonInclude]` and `[SingletonIgnore]` give you fine-grained control. They are mutually exclusive *per class* — using `[SingletonInclude]` anywhere on the class flips the generator into **explicit mode**.
 
-> [!NOTE]
-> Neither attribute applies when you supply your own interface via `[Singleton(typeof(IFoo))]` — in that case the interface contract is whatever you typed.
+> **Note** — Neither attribute applies when you supply your own interface via `[Singleton(typeof(IFoo))]`; in that case the interface contract is whatever you typed.
 
 **Auto mode** *(default — no `[SingletonInclude]` on the class)*
 
