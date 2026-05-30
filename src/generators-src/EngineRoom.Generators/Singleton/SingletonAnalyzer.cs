@@ -16,7 +16,6 @@ namespace EngineRoom.Generators.Singleton
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             SingletonDiagnostics.MustBeMonoBehaviour,
             SingletonDiagnostics.MustBePartial,
-            SingletonDiagnostics.MustNotDefineAwake,
             SingletonDiagnostics.MemberMustBePublic,
             SingletonDiagnostics.MemberMustBeInstance,
             SingletonDiagnostics.IgnoreUnusedInExplicitMode,
@@ -71,16 +70,9 @@ namespace EngineRoom.Generators.Singleton
                 ctx.ReportDiagnostic(Diagnostic.Create(SingletonDiagnostics.MustBePartial, classLocation, className));
             }
 
-            var existingAwake = classSymbol.GetMembers("Awake")
-                .OfType<IMethodSymbol>()
-                .FirstOrDefault(static method => method.MethodKind == MethodKind.Ordinary
-                    && method.Parameters.Length == 0
-                    && !method.IsStatic);
-            if (existingAwake is not null)
-            {
-                var awakeLocation = existingAwake.Locations.FirstOrDefault() ?? classLocation;
-                ctx.ReportDiagnostic(Diagnostic.Create(SingletonDiagnostics.MustNotDefineAwake, awakeLocation, className));
-            }
+            // User-defined Awake() conflict is the Lifecycle analyzer's job now:
+            // [Singleton] no longer emits Awake itself — it emits a SingletonAwake
+            // helper that the lifecycle dispatcher calls.
 
             var (customInterface, _) = SingletonAttributeReader.Read(singletonAttribute);
             if (customInterface is not null)

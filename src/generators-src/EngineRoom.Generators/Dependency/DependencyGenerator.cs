@@ -61,16 +61,6 @@ namespace EngineRoom.Generators.Dependency
                 return null;
             }
 
-            var hasOwnStart = classSymbol.GetMembers("Start")
-                .OfType<IMethodSymbol>()
-                .Any(static method => method.MethodKind == MethodKind.Ordinary
-                    && method.Parameters.Length == 0
-                    && !method.IsStatic);
-            if (hasOwnStart)
-            {
-                return null;
-            }
-
             if (fieldSymbol.IsStatic)
             {
                 return null;

@@ -26,6 +26,7 @@ A Unity package of Roslyn source generators that take care of the boilerplate ar
 - [Singletons](#singletons)
   - [Attributes](#attributes)
   - [Guidance](#guidance)
+- [Lifecycle](#lifecycle)
 - [Requirements](#requirements)
 
 ---
@@ -142,18 +143,34 @@ public partial class SoundManager : ISoundManager
         return obj.AddComponent<SoundManager>();
     }
 
-    private void Awake()
+    // Returns false when this instance is a duplicate (gameObject has already
+    // been Destroy'd) so the lifecycle dispatcher can short-circuit.
+    private bool SingletonAwake()
     {
         var existing = ISoundManager.Instance as Object;
         if (existing != null && existing != this)
         {
             Object.Destroy(gameObject);
-            return;
+            return false;
         }
 
         transform.SetParent(null);
         DontDestroyOnLoad(gameObject);
         ISoundManager.Instance = this;
+        return true;
+    }
+}
+
+// Emitted by the Lifecycle generator (see below). Calls SingletonAwake first,
+// aborts on duplicate, then runs any user [Awake] methods, then OnAwake().
+public partial class SoundManager
+{
+    private void Awake()
+    {
+        if (!SingletonAwake())
+        {
+            return;
+        }
         OnAwake();
     }
 
@@ -180,7 +197,7 @@ The attribute accepts two optional arguments — a custom interface type and a `
 
 **`destroyOnLoad`** *(default: `false`)*
 
-By default the generated `Awake()` calls `DontDestroyOnLoad(gameObject)` and re-parents the host to the scene root, so the singleton outlives scene transitions. Set `destroyOnLoad: true` when you want the singleton scoped to its scene — useful for per-level managers that should reset on reload. With the flag on, the `DontDestroyOnLoad` and reparenting calls are omitted from the generated `Awake()`.
+By default the generated `SingletonAwake` helper calls `DontDestroyOnLoad(gameObject)` and re-parents the host to the scene root, so the singleton outlives scene transitions. Set `destroyOnLoad: true` when you want the singleton scoped to its scene — useful for per-level managers that should reset on reload. With the flag on, the `DontDestroyOnLoad` and reparenting calls are omitted from the helper.
 
 **Bring-your-own interface**
 
@@ -205,10 +222,11 @@ public partial class DataStoreManager : MonoBehaviour, IDataStoreManager
 
 | Member                    | What it does                                                                            |
 | ------------------------- | --------------------------------------------------------------------------------------- |
-| `I<ClassName>` interface  | Auto-generated when no interface is supplied. Lists the public-and-non-`[SingletonIgnore]` members of the class (or only `[SingletonInclude]`-tagged members in explicit mode). |
-| `static Create()`         | Factory that spawns a fresh GameObject named after the class and adds the component.    |
-| `private void Awake()`    | Publishes the instance, enforces the singleton invariant, optionally calls `DontDestroyOnLoad`. |
-| `partial void OnAwake()`  | Your hook — define it for post-awake setup; called after the instance is published.     |
+| `I<ClassName>` interface       | Auto-generated when no interface is supplied. Lists the public-and-non-`[SingletonIgnore]` members of the class (or only `[SingletonInclude]`-tagged members in explicit mode). |
+| `static Create()`              | Factory that spawns a fresh GameObject named after the class and adds the component.    |
+| `private bool SingletonAwake()`| Helper: publishes the instance, enforces the singleton invariant, optionally calls `DontDestroyOnLoad`. Returns `false` on a duplicate (after calling `Destroy(gameObject)`). |
+| `private void Awake()`         | Lifecycle dispatcher — emitted by the [Lifecycle](#lifecycle) generator. Calls `SingletonAwake()`, short-circuits on duplicate, then user `[Awake]` methods, then `OnAwake()`. |
+| `partial void OnAwake()`       | Back-compat hook — define it for post-awake setup; called after the instance is published. (For new code, prefer marking a method with `[Awake]`.) |
 
 </details>
 
@@ -287,9 +305,19 @@ This will generate the following code:
 ```csharp
 public partial class Egg
 {
-    private void Start()
+    private void DependencyStart()
     {
         _soundManager = ISoundManager.Instance;
+    }
+}
+
+// Emitted by the Lifecycle generator (see below). Calls DependencyStart first,
+// then any user [Start] methods, then OnStart().
+public partial class Egg
+{
+    private void Start()
+    {
+        DependencyStart();
         OnStart();
     }
 
@@ -297,7 +325,7 @@ public partial class Egg
 }
 ```
 
-Multiple `[Dependency]` fields on the same class are all assigned in the same generated `Start()` before `OnStart()` runs.
+Multiple `[Dependency]` fields on the same class are all assigned in the same generated `DependencyStart()` before any user `[Start]` methods or the back-compat `OnStart()` partial run.
 
 </details>
 
@@ -365,6 +393,98 @@ public class Bootstrap : MonoBehaviour
 ```
 
 The `[DefaultExecutionOrder]` attribute makes `Bootstrap.Awake` run before any other script, so every `Create()` (the factory emitted by `[Singleton]`) registers its instance before anything else touches it.
+
+</details>
+
+---
+
+## Lifecycle
+
+The Lifecycle generator turns Unity's lifecycle hooks (`Awake`, `Start`, `OnEnable`, `OnDisable`, `Update`, `FixedUpdate`, `LateUpdate`, `OnDestroy`) into method-level attributes. Mark as many methods as you like with `[Awake]`/`[Start]`/etc.; the generator emits a single dispatcher per hook that calls them all in order. This lets multiple features on the same MonoBehaviour cooperate on a lifecycle method without anyone owning `Awake()` outright — which is also how `[Singleton]` and `[Dependency]` integrate cleanly.
+
+<details>
+<summary><b>Lifecycle attributes</b> &nbsp;<sub>— hook into Unity's lifecycle without owning the method</sub></summary>
+
+&nbsp;
+
+One attribute per Unity message:
+
+| Attribute        | Generated dispatcher |
+| ---------------- | -------------------- |
+| `[Awake]`        | `private void Awake()` |
+| `[Start]`        | `private void Start()` |
+| `[OnEnable]`     | `private void OnEnable()` |
+| `[OnDisable]`    | `private void OnDisable()` |
+| `[Update]`       | `private void Update()` |
+| `[FixedUpdate]`  | `private void FixedUpdate()` |
+| `[LateUpdate]`   | `private void LateUpdate()` |
+| `[OnDestroy]`    | `private void OnDestroy()` |
+
+```csharp
+using EngineRoom.Runtime.Lifecycle;
+using UnityEngine;
+
+public partial class Player : MonoBehaviour
+{
+    [Awake]
+    private void WireInput() { /* … */ }
+
+    [Awake]
+    private void CacheComponents() { /* … */ }
+
+    [Update(order: -10)]
+    private void PollInput() { /* runs before any unordered [Update] */ }
+
+    [Update]
+    private void Step() { /* … */ }
+
+    [OnDestroy]
+    private void Unsubscribe() { /* … */ }
+}
+```
+
+The generator emits a single partial:
+
+```csharp
+public partial class Player
+{
+    private void Awake()
+    {
+        WireInput();
+        CacheComponents();
+        OnAwake();              // back-compat hook (always declared for Awake/Start)
+    }
+
+    partial void OnAwake();
+
+    private void Update()
+    {
+        PollInput();            // order = -10, runs first
+        Step();                 // unordered, source position
+    }
+
+    private void OnDestroy()
+    {
+        Unsubscribe();
+    }
+}
+```
+
+#### Ordering
+
+Each attribute takes an optional `int order` (defaults to `0`). Methods are sorted by ascending `Order`, then by their declaration position in source for stable ties. Methods without an explicit order intermix with `order: 0` and follow source order among themselves. When two methods on the same lifecycle share the same **explicit** order, the analyzer warns (`ERG0205`) and the tiebreak falls back to source position.
+
+#### Interaction with `[Singleton]` and `[Dependency]`
+
+`[Singleton]` always runs its `SingletonAwake()` helper **before** any user `[Awake]` methods on the same class, and short-circuits the rest of the dispatcher on a duplicate (the `gameObject` has been `Destroy`'d). `[Dependency]` always resolves fields via `DependencyStart()` **before** any user `[Start]` methods. These are special-cased — they don't participate in `Order` sorting.
+
+For backwards compatibility, the `Awake` and `Start` dispatchers still call (and declare) the `OnAwake()` and `OnStart()` partial hooks at the end, so existing code that implemented those keeps working. New code is encouraged to use `[Awake]`/`[Start]`-marked methods instead.
+
+#### Constraints
+
+- The host class must be `partial` and inherit from `MonoBehaviour` (`ERG0201`, `ERG0202`).
+- A lifecycle-attributed method must be an instance method, take no parameters, and return `void` (`ERG0204`).
+- The class must not define the lifecycle entry-point method directly (e.g. `void Awake()` when the class also has `[Awake]` methods or `[Singleton]`) — the generator emits it (`ERG0203`).
 
 </details>
 

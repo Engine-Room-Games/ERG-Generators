@@ -18,7 +18,6 @@ namespace EngineRoom.Generators.Dependency
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             DependencyDiagnostics.MustBeMonoBehaviour,
             DependencyDiagnostics.MustBePartial,
-            DependencyDiagnostics.MustNotDefineStart,
             DependencyDiagnostics.FieldMustBeNonPublicInstance,
             DependencyDiagnostics.FieldTypeMustBeSingletonInterface);
 
@@ -66,16 +65,9 @@ namespace EngineRoom.Generators.Dependency
                 ctx.ReportDiagnostic(Diagnostic.Create(DependencyDiagnostics.MustBePartial, classLocation, className));
             }
 
-            var existingStart = classSymbol.GetMembers("Start")
-                .OfType<IMethodSymbol>()
-                .FirstOrDefault(static method => method.MethodKind == MethodKind.Ordinary
-                    && method.Parameters.Length == 0
-                    && !method.IsStatic);
-            if (existingStart is not null)
-            {
-                var startLocation = existingStart.Locations.FirstOrDefault() ?? classLocation;
-                ctx.ReportDiagnostic(Diagnostic.Create(DependencyDiagnostics.MustNotDefineStart, startLocation, className));
-            }
+            // User-defined Start() conflict is the Lifecycle analyzer's job now:
+            // [Dependency] no longer emits Start itself — it emits a
+            // DependencyStart helper that the lifecycle dispatcher calls.
         }
 
         private static void AnalyzeField(SymbolAnalysisContext ctx)

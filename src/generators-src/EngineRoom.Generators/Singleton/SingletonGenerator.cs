@@ -47,16 +47,6 @@ namespace EngineRoom.Generators.Singleton
                 return null;
             }
 
-            var hasOwnAwake = classSymbol.GetMembers("Awake")
-                .OfType<IMethodSymbol>()
-                .Any(static method => method.MethodKind == MethodKind.Ordinary
-                    && method.Parameters.Length == 0
-                    && !method.IsStatic);
-            if (hasOwnAwake)
-            {
-                return null;
-            }
-
             var attribute = ctx.Attributes[0];
             var (customInterface, destroyOnLoad) = SingletonAttributeReader.Read(attribute);
 
