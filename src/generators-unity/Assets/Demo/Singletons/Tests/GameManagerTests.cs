@@ -28,5 +28,30 @@ namespace EngineRoom.Demo.Singletons.Tests
                 Object.DestroyImmediate(((GameManager)game).gameObject);
             }
         }
+
+        [Test]
+        public void RegisterTap_RaisesCountChangedEventOnInterface()
+        {
+            MockDataStoreManager.Install();
+            MockSoundManager.Install();
+            MockUIManager.Install();
+
+            IGameManager game = GameManager.Create();
+
+            try
+            {
+                var observed = -1;
+                game.CountChanged += value => observed = value;
+
+                game.RegisterTap();
+                game.RegisterTap();
+
+                Assert.AreEqual(2, observed);
+            }
+            finally
+            {
+                Object.DestroyImmediate(((GameManager)game).gameObject);
+            }
+        }
     }
 }
