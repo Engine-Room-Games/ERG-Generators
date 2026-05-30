@@ -1,10 +1,7 @@
 partial class %%ClassName%%
 {
-    private void Start()
+    private void DependencyStart()
     {
         %%Assignments%%
-        OnStart();
     }
-
-    partial void OnStart();
 }

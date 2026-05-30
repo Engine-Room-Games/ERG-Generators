@@ -22,13 +22,9 @@ namespace EngineRoom.Generators.Singleton
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MustNotDefineAwake = new DiagnosticDescriptor(
-            id: "ERG0003",
-            title: "[Singleton] class must not define its own Awake",
-            messageFormat: "Class '{0}' is decorated with [Singleton] and must not define an Awake() method. Move that code into OnAwake() instead.",
-            category: Category,
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+        // ERG0003 ("must not define Awake") retired with the lifecycle refactor —
+        // the equivalent check now lives in LifecycleAnalyzer (ERG0203). ID kept
+        // reserved so it can't be silently reused for an unrelated diagnostic.
 
         public static readonly DiagnosticDescriptor MemberMustBePublic = new DiagnosticDescriptor(
             id: "ERG0004",

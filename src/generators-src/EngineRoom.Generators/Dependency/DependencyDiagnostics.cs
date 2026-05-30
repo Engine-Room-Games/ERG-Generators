@@ -22,13 +22,9 @@ namespace EngineRoom.Generators.Dependency
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MustNotDefineStart = new DiagnosticDescriptor(
-            id: "ERG0103",
-            title: "[Dependency] host class must not define its own Start",
-            messageFormat: "Class '{0}' has a [Dependency] field and must not define a Start() method. Move that code into OnStart() instead.",
-            category: Category,
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+        // ERG0103 ("must not define Start") retired with the lifecycle refactor —
+        // the equivalent check now lives in LifecycleAnalyzer (ERG0203). ID kept
+        // reserved so it can't be silently reused for an unrelated diagnostic.
 
         public static readonly DiagnosticDescriptor FieldMustBeNonPublicInstance = new DiagnosticDescriptor(
             id: "ERG0104",
